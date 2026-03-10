@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReconSP | Intelligence Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gradient-bg {
+            background: radial-gradient(circle at top right, #1e1b4b, #030712);
+        }
+    </style>
+</head>
+
+<body class="gradient-bg text-gray-100 min-h-screen">
+    <!-- Sidebar / Header -->
+    <nav class="border-b border-gray-800 p-4 sticky top-0 bg-gray-950/80 backdrop-filter blur-xl z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/50">
+                    <span class="text-xl font-bold">R</span>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight">Recon<span class="text-indigo-500">SP</span></h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span
+                    class="px-3 py-1 bg-green-500/10 text-green-400 text-xs font-semibold rounded-full border border-green-500/20 uppercase">Scan
+                    Complete</span>
+                <span class="text-gray-400 text-sm" id="current-date"></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-6 space-y-8">
+        <!-- Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-gray-400 text-sm font-medium">Target Domain</p>
+                <h3 class="text-xl font-bold mt-1 text-indigo-400">{{.Target}}</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-gray-400 text-sm font-medium">Subdomains Found</p>
+                <h3 class="text-3xl font-bold mt-1">{{.SubdomainCount}}</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-gray-400 text-sm font-medium">Vulnerabilities</p>
+                <h3 class="text-3xl font-bold mt-1 text-red-500">{{.VulnerabilityCount}}</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-gray-400 text-sm font-medium">Risk Score</p>
+                <h3 class="text-3xl font-bold mt-1 text-yellow-500">{{.RiskScore}}</h3>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass p-6 rounded-2xl">
+                <h4 class="text-lg font-semibold mb-6 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
+                    </svg>
+                    Vulnerability Severity
+                </h4>
+                <canvas id="vulnChart" height="200"></canvas>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <h4 class="text-lg font-semibold mb-6 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Asset Distribution
+                </h4>
+                <canvas id="techChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Subdomain Inventory -->
+        <div class="glass rounded-2xl overflow-hidden">
+            <div class="p-6 border-b border-gray-800 bg-gray-900/50">
+                <h4 class="text-lg font-semibold">Subdomain Inventory</h4>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-800/50 text-gray-400 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-6 py-4">Host</th>
+                            <th class="px-6 py-4">IP Address</th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Server</th>
+                            <th class="px-6 py-4">Tech Stack</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800" id="subdomain-table">
+                        {{range .Subdomains}}
+                        <tr class="hover:bg-gray-800/30 transition-colors">
+                            <td class="px-6 py-4 font-medium text-indigo-300">{{.Host}}</td>
+                            <td class="px-6 py-4 text-gray-400">{{.IP}}</td>
+                            <td class="px-6 py-4">
+                                <span
+                                    class="px-2 py-0.5 bg-green-500/10 text-green-400 text-[10px] font-bold rounded uppercase border border-green-500/20">{{.Status}}</span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-400">{{.Server}}</td>
+                            <td class="px-6 py-4 text-xs">{{.TechStack}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Vulnerabilities List -->
+        <div class="space-y-4">
+            <h4 class="text-xl font-bold px-2">Identified Vulnerabilities</h4>
+            <div class="grid grid-cols-1 gap-4" id="vulnerability-list">
+                {{range .Vulnerabilities}}
+                <div
+                    class="glass p-5 rounded-xl border-l-4 border-red-500 hover:scale-[1.01] transition-transform duration-200 cursor-pointer">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h5 class="font-bold text-red-400">{{.Name}}</h5>
+                            <p class="text-sm text-gray-400 mt-1">{{.Description}}</p>
+                        </div>
+                        <span
+                            class="px-3 py-1 bg-red-500/20 text-red-500 text-[10px] font-bold rounded-full uppercase border border-red-500/30">{{.Severity}}</span>
+                    </div>
+                    <div class="mt-4 flex items-center text-xs text-gray-500">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.823a4 4 0 015.656 0l4 4a4 4 0 01-5.656 5.656l-1.102-1.101m-.758-4.823a4 4 0 015.656 0">
+                            </path>
+                        </svg>
+                        {{.Target}}
+                    </div>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="max-w-7xl mx-auto p-12 text-center text-gray-500 text-sm border-t border-gray-900 mt-12">
+        <p>Generated by ReconSP v1.0 | Attack Surface Intelligence Dashboard</p>
+    </footer>
+
+    <script>
+        document.getElementById('current-date').innerText = new Date().toLocaleString();
+
+        // Chart.js - Severity
+        new Chart(document.getElementById('vulnChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+                datasets: [{
+                    data: [2, 5, 12, 8, 45],
+                    backgroundColor: ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#94a3b8'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 12 } } } }
+            }
+        });
+
+        // Chart.js - Assets
+        new Chart(document.getElementById('techChart'), {
+            type: 'bar',
+            data: {
+                labels: ['CloudFlare', 'Nginx', 'Apache', 'React', 'WordPress'],
+                datasets: [{
+                    label: 'Instances',
+                    data: [12, 19, 3, 5, 2],
+                    backgroundColor: '#6366f1'
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#1f2937' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+</body>
+
+</html>

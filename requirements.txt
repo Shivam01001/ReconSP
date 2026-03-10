@@ -1,0 +1,22 @@
+# ReconSP - External Tool Dependencies
+# These tools must be installed and available in your system PATH
+
+--- INSTALLATION (KALI LINUX) ---
+sudo apt install golang subfinder nuclei amass httpx assetfinder -y
+
+--- INSTALLATION (WINDOWS) ---
+1. Install Go: (https://go.dev/dl/)
+2. Install ProjectDiscovery Tools (Subfinder, Nuclei, Httpx, Katana):
+   Download .zip binaries from GitHub Releases, extract them, 
+   and add the folder to your system environment variables (Path).
+
+--- External Binary Tools (ProjectDiscovery.io) ---
+subfinder      (Multi-source subdomain discovery)
+nuclei         (Automated vulnerability scanner)
+httpx          (Live host detection + tech fingerprinting)
+katana         (Crawl + URL discovery)
+
+--- Internal Go Project Libraries ---
+github.com/spf13/cobra    (CLI management)
+github.com/spf13/viper    (Config management)
+github.com/mattn/go-sqlite3 (Database)

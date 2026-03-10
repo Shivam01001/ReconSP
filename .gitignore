@@ -1,0 +1,18 @@
+# Binaries
+reconsp
+reconsp.exe
+*.exe
+
+# Logs & Results
+logs/
+*.log
+
+# Dependencies & Templates
+# (Templates should be cloned via install script as per README)
+templates/nuclei-templates/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
