@@ -1,0 +1,931 @@
+---
+
+# ReconSP — Software Requirements Specification (SRS)
+
+Version: 1.0
+Tool Name: ReconSP
+Type: Automated Reconnaissance & Attack Surface Intelligence Tool
+Primary Users: Cybersecurity Analysts, Bug Bounty Researchers
+
+---
+
+# 1. SYSTEM OVERVIEW
+
+ReconSP is an **automated reconnaissance orchestration tool** designed to discover and analyze the attack surface of a web target.
+
+The system will perform:
+
+* Infrastructure discovery
+* Recursive subdomain enumeration
+* Endpoint discovery
+* JavaScript intelligence extraction
+* Secret detection
+* Cloud asset discovery
+* Subdomain takeover detection
+* Backup file discovery
+* API mapping
+* Technology fingerprinting
+* Vulnerability scanning
+* Attack surface prioritization
+* HTML reporting
+
+The objective is to convert **raw reconnaissance data into actionable intelligence**.
+
+---
+
+# 2. USER INPUT
+
+ReconSP must accept only **two parameters**.
+
+Required parameters:
+
+```
+-u --url
+-d --depth
+```
+
+Example:
+
+```
+reconsp -u example.com -d 3
+```
+
+Explanation:
+
+| Parameter | Description               |
+| --------- | ------------------------- |
+| -u        | Target domain             |
+| -d        | Recursive subdomain depth |
+
+Example depth behavior:
+
+```
+Depth 1:
+example.com
+api.example.com
+
+Depth 2:
+api.dev.example.com
+stage.api.example.com
+
+Depth 3:
+internal.dev.api.example.com
+```
+
+---
+
+# 3. LOG STORAGE STRUCTURE
+
+The tool must automatically create:
+
+```
+ReconSP/
+logs/
+logs/<target-domain>/
+```
+
+Example:
+
+```
+logs/example.com/
+```
+
+Inside this folder the tool stores:
+
+```
+subdomains.txt
+alive_hosts.txt
+dns_records.txt
+technologies.json
+js_endpoints.txt
+secrets.txt
+backup_files.txt
+cloud_assets.txt
+takeover_candidates.txt
+api_endpoints.txt
+graphql_endpoints.txt
+vulnerabilities.json
+screenshots/
+report.html
+errors.log
+```
+
+---
+
+# 4. SYSTEM ARCHITECTURE
+
+ReconSP uses a **pipeline-based modular architecture**.
+
+Execution flow:
+
+```
+User Input
+↓
+Input Validation
+↓
+Recon Orchestrator
+↓
+Passive Intelligence
+↓
+Subdomain Enumeration
+↓
+DNS Resolution
+↓
+Live Host Detection
+↓
+Technology Detection
+↓
+Crawling Engine
+↓
+JavaScript Intelligence Extraction
+↓
+Secret Detection
+↓
+Backup Discovery
+↓
+Cloud Asset Discovery
+↓
+Subdomain Takeover Detection
+↓
+Dev Environment Detection
+↓
+API Mapping
+↓
+GraphQL Detection
+↓
+Vulnerability Scanning
+↓
+Technology Specific Scanning
+↓
+Screenshot Engine
+↓
+Risk Prioritization
+↓
+HTML Reporting
+```
+
+---
+
+# 5. CORE COMPONENTS
+
+## 5.1 CLI Layer
+
+Responsible for:
+
+* argument parsing
+* input validation
+* execution initialization
+
+Recommended library:
+
+```
+cobra (Go)
+```
+
+---
+
+# 5.2 Recon Orchestrator
+
+Main controller responsible for:
+
+* task scheduling
+* module execution
+* worker distribution
+* error handling
+
+Responsibilities:
+
+```
+start modules
+collect outputs
+send results to database
+trigger reporting engine
+```
+
+---
+
+# 6. CONCURRENCY MODEL
+
+ReconSP must use **parallel scanning**.
+
+Recommended architecture:
+
+```
+goroutines
+worker pools
+channels
+```
+
+Example:
+
+```
+HTTP scanner workers = 50
+DNS workers = 30
+crawler workers = 20
+```
+
+---
+
+# 7. DATABASE SCHEMA (OPTIONAL BUT RECOMMENDED)
+
+Database: SQLite
+
+Tables:
+
+---
+
+### targets
+
+```
+id
+domain
+scan_date
+depth
+```
+
+---
+
+### subdomains
+
+```
+id
+target_id
+subdomain
+source
+alive
+ip
+```
+
+---
+
+### technologies
+
+```
+id
+subdomain_id
+technology
+version
+confidence
+```
+
+---
+
+### endpoints
+
+```
+id
+subdomain_id
+url
+method
+source
+```
+
+---
+
+### secrets
+
+```
+id
+source_file
+secret_type
+secret_value
+```
+
+---
+
+### vulnerabilities
+
+```
+id
+target
+severity
+description
+template
+```
+
+---
+
+# 8. PASSIVE INTELLIGENCE MODULE
+
+Purpose:
+
+Collect infrastructure data before scanning.
+
+Sources:
+
+```
+Shodan
+Censys
+SecurityTrails
+VirusTotal
+crt.sh
+```
+
+Collected information:
+
+```
+subdomains
+IP addresses
+certificate domains
+historical DNS
+hostnames
+```
+
+---
+
+# 9. SUBDOMAIN ENUMERATION MODULE
+
+Tools used:
+
+```
+subfinder
+amass
+findomain
+```
+
+Output:
+
+```
+subdomains.txt
+```
+
+Recursive enumeration:
+
+Algorithm:
+
+```
+for each discovered subdomain
+run enumeration again until depth limit
+```
+
+Example:
+
+```
+api.example.com
+dev.api.example.com
+internal.dev.api.example.com
+```
+
+---
+
+# 10. DNS RESOLUTION MODULE
+
+Tool:
+
+```
+dnsx
+```
+
+Collected data:
+
+```
+A records
+CNAME records
+MX records
+TXT records
+```
+
+Output:
+
+```
+dns_records.txt
+```
+
+---
+
+# 11. LIVE HOST DETECTION
+
+Tool:
+
+```
+httpx
+```
+
+Data collected:
+
+```
+HTTP status
+title
+server header
+content length
+IP
+technologies
+```
+
+Output:
+
+```
+alive_hosts.txt
+```
+
+---
+
+# 12. TECHNOLOGY DETECTION
+
+Tools:
+
+```
+wappalyzer
+httpx tech detection
+```
+
+Examples:
+
+```
+WordPress
+Drupal
+NodeJS
+React
+NextJS
+Laravel
+```
+
+Output:
+
+```
+technologies.json
+```
+
+---
+
+# 13. CRAWLING ENGINE
+
+Purpose:
+
+Discover endpoints.
+
+Recommended tools:
+
+```
+katana
+hakrawler
+```
+
+Output:
+
+```
+endpoints.txt
+```
+
+---
+
+# 14. JAVASCRIPT INTELLIGENCE
+
+Extract hidden data from JavaScript.
+
+Tools:
+
+```
+linkfinder
+secretfinder
+```
+
+Extract:
+
+```
+API endpoints
+internal domains
+tokens
+JWT keys
+cloud storage links
+```
+
+Output:
+
+```
+js_endpoints.txt
+```
+
+---
+
+# 15. SECRET DETECTION
+
+Detect secrets like:
+
+```
+AWS keys
+Google API keys
+JWT tokens
+OAuth tokens
+private keys
+```
+
+Detection methods:
+
+```
+regex patterns
+entropy detection
+```
+
+Output:
+
+```
+secrets.txt
+```
+
+---
+
+# 16. BACKUP FILE DISCOVERY
+
+Tool:
+
+```
+ffuf
+```
+
+Example targets:
+
+```
+backup.zip
+site_backup.tar
+database.sql
+archive.rar
+```
+
+Output:
+
+```
+backup_files.txt
+```
+
+---
+
+# 17. CLOUD ASSET DISCOVERY
+
+Detect exposed cloud buckets.
+
+Platforms:
+
+```
+AWS S3
+Google Cloud Storage
+Azure Blob
+```
+
+Generated names:
+
+```
+target-backup
+target-assets
+target-prod
+target-dev
+```
+
+Output:
+
+```
+cloud_assets.txt
+```
+
+---
+
+# 18. SUBDOMAIN TAKEOVER DETECTION
+
+Tools:
+
+```
+subjack
+subzy
+```
+
+Check orphaned CNAMEs.
+
+Services:
+
+```
+Heroku
+GitHub Pages
+Vercel
+Netlify
+AWS S3
+```
+
+Output:
+
+```
+takeover_candidates.txt
+```
+
+---
+
+# 19. DEV ENVIRONMENT DETECTION
+
+Search for environments:
+
+```
+dev
+stage
+staging
+beta
+test
+internal
+sandbox
+```
+
+Output:
+
+```
+dev_environments.txt
+```
+
+---
+
+# 20. SHADOW API DISCOVERY
+
+Detect undocumented APIs.
+
+Methods:
+
+```
+JS endpoint extraction
+API fuzzing
+dictionary discovery
+```
+
+Common paths:
+
+```
+/api/internal
+/api/admin
+/api/debug
+```
+
+Output:
+
+```
+api_endpoints.txt
+```
+
+---
+
+# 21. GRAPHQL DETECTION
+
+Look for:
+
+```
+/graphql
+/api/graphql
+/query
+```
+
+Run introspection query.
+
+Output:
+
+```
+graphql_endpoints.txt
+```
+
+---
+
+# 22. VULNERABILITY SCANNING
+
+Primary scanner:
+
+```
+nuclei
+```
+
+Template categories:
+
+```
+CVEs
+misconfigurations
+panels
+secrets
+token exposures
+SSRF
+```
+
+Output:
+
+```
+vulnerabilities.json
+```
+
+---
+
+# 23. TECHNOLOGY SPECIFIC SCANNERS
+
+When a technology is detected run extra tools.
+
+Example:
+
+WordPress detected → run:
+
+```
+wpscan
+```
+
+Output:
+
+```
+wordpress_scan.txt
+```
+
+---
+
+# 24. SCREENSHOT ENGINE
+
+Tool:
+
+```
+gowitness
+```
+
+Screenshots saved:
+
+```
+logs/<target>/screenshots/
+```
+
+---
+
+# 25. RISK PRIORITIZATION ENGINE
+
+Each asset receives a score.
+
+Example scoring:
+
+```
+Admin panel +30
+Login page +20
+API endpoint +15
+Dev environment +25
+Backup exposure +40
+Cloud exposure +50
+Outdated technology +20
+```
+
+Output:
+
+```
+attack_surface_priority.json
+```
+
+---
+
+# 26. REPORTING ENGINE
+
+Output:
+
+```
+report.html
+```
+
+Requirements:
+
+Responsive HTML dashboard.
+
+Features:
+
+```
+interactive tables
+risk ranking
+vulnerability summaries
+screenshots
+graphs
+asset inventory
+```
+
+Libraries:
+
+```
+TailwindCSS
+Chart.js
+Vanilla JS
+```
+
+---
+
+# 27. ERROR HANDLING
+
+All runtime errors stored in:
+
+```
+logs/<target>/errors.log
+```
+
+Handled errors:
+
+```
+network timeouts
+DNS failures
+API failures
+tool crashes
+```
+
+---
+
+# 28. API KEY MANAGEMENT
+
+Some modules require API keys.
+
+Example:
+
+```
+Shodan
+SecurityTrails
+VirusTotal
+```
+
+Configuration file:
+
+```
+configs/api_keys.yaml
+```
+
+Example:
+
+```
+shodan: KEY
+securitytrails: KEY
+virustotal: KEY
+```
+
+---
+
+# 29. DEPENDENCY INSTALLATION
+
+Required tools:
+
+```
+subfinder
+amass
+findomain
+dnsx
+httpx
+katana
+ffuf
+nuclei
+gowitness
+subjack
+subzy
+wpscan
+```
+
+Installation script must:
+
+```
+install binaries
+update nuclei templates
+check tool versions
+```
+
+---
+
+# 30. PERFORMANCE REQUIREMENTS
+
+System must support:
+
+```
+parallel scanning
+rate limiting
+memory safe processing
+```
+
+Suggested limits:
+
+```
+100 HTTP requests/sec
+30 DNS queries/sec
+```
+
+---
+
+# 31. SECURITY CONSTRAINTS
+
+Tool must prevent:
+
+```
+infinite recursion
+duplicate scans
+invalid domains
+resource exhaustion
+```
+
+---
+
+# 32. FINAL EXECUTION RESULT
+
+Running:
+
+```
+reconsp -u example.com -d 3
+```
+
+Produces:
+
+```
+complete attack surface intelligence
+subdomain map
+API map
+cloud exposure detection
+secret detection
+vulnerability scanning
+risk prioritization
+visual reconnaissance report
+```
+
+---
+

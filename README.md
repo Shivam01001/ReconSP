@@ -1,6 +1,6 @@
 # 🛡️ ReconSP — Automated Attack Surface Intelligence
 
-ReconSP is a high-performance **Go-based reconnaissance orchestration tool** designed for cybersecurity analysts, bug bounty hunters, and red teamers. It automates the complex pipeline of discovering subdomains, identifying live assets, uncovering hidden endpoints, and scanning for vulnerabilities.
+ReconSP is a high-performance **Python-based reconnaissance orchestration tool** (converted from Go) designed for cybersecurity analysts, bug bounty hunters, and red teamers. It automates the complex pipeline of discovering subdomains, identifying live assets, uncovering hidden endpoints, and scanning for vulnerabilities.
 
 Designed to run seamlessly on both **Windows** and **Kali Linux**, ReconSP converts raw reconnaissance data into actionable intelligence through a premium HTML dashboard.
 
@@ -30,37 +30,28 @@ Designed to run seamlessly on both **Windows** and **Kali Linux**, ReconSP conve
     cd ReconSP
     ```
 
-2.  **Run the Installer**:
-    The included `install.sh` script is the heart of the Kali installation. It automatically installs:
-    - **Go** (Golang)
-    - **Subfinder**
-    - **Nuclei**
-    - **Amass** & **Httpx**
-    - **Assetfinder**
-    
+2.  **Install Python Dependencies**:
     ```bash
-    chmod +x install.sh
-    ./install.sh
+    pip install -r requirements.txt
     ```
 
 3.  **Run Your First Scan**:
     ```bash
-    ./reconsp -u example.com -d 1
+    python3 -m cmd.reconsp.main -u example.com -d 1
     ```
 
 ---
 
 ### 🪟 On Windows
 
-1.  **Install Go**: Download and install the latest version from [go.dev/dl](https://go.dev/dl/).
-2.  **Add Tools to PATH**: (Optional but Recommended) Download binary releases of [Subfinder](https://github.com/projectdiscovery/subfinder) and [Nuclei](https://github.com/projectdiscovery/nuclei) and add them to your system environment variables.
-3.  **Run the Setup Script**:
+1.  **Install Python**: Download and install the latest version from [python.org](https://www.python.org/).
+2.  **Run the Setup Script**:
     ```powershell
-    .\setup.bat
+    .\setup_py.bat
     ```
-4.  **Run Your First Scan**:
+3.  **Run Your First Scan**:
     ```powershell
-    .\reconsp.exe -u example.com -d 1
+    python -m cmd.reconsp.main -u example.com -d 1
     ```
 
 ---
@@ -70,7 +61,7 @@ Designed to run seamlessly on both **Windows** and **Kali Linux**, ReconSP conve
 ReconSP is designed with a simple "two-parameter" approach:
 
 ```bash
-reconsp -u <target-domain> -d <depth>
+python -m cmd.reconsp.main -u <target-domain> -d <depth>
 ```
 
 | Parameter | Alias | Description |
@@ -78,11 +69,19 @@ reconsp -u <target-domain> -d <depth>
 | `-u` | `--url` | The target domain to scan (e.g., target.com) |
 | `-d` | `--depth` | Recursive depth for subdomain discovery (1-3) |
 
-### Example Scenario
-To perform a deep 3-level scan on a target:
-```bash
-./reconsp -u target.com -d 3
-```
+---
+
+## 📂 Project Structure
+
+*   `cmd/reconsp/main.py` — Main entry point.
+*   `internal/orchestrator/` — Core pipeline logic.
+*   `modules/` — Discovery and scanning modules.
+*   `pkg/` — Reusable packages (config, logger).
+*   `configs/` — Global configuration settings.
+*   `templates/` — HTML report templates.
+*   `wordlists/` — Custom wordlists for discovery and exploitation.
+    *   `payloads/` — SQLi, XSS, LFI, SSTI, CRLF, and Command Injection payloads.
+    *   `discovery/` — API paths, admin panels, config files, 403 bypasses, and general fuzzing lists.
 
 ---
 

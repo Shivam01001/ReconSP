@@ -1,0 +1,6 @@
+rate_limit: 100
+max_workers: 50
+depth_limit: 3
+enable_cloud_scan: true
+enable_takeover_scan: true
+proxy: ""
