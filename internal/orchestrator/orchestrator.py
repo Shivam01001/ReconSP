@@ -15,6 +15,8 @@ from modules.js.js_analyzer import JSAnalyzer
 from modules.takeover.takeover import check_takeover
 from modules.cloud.cloud import detect_cloud_assets
 from modules.technology.technology import detect_technologies
+from modules.crawler.crawler import crawl_target
+from modules.graphql.graphql import detect_graphql
 from internal.secrets.secrets_analyzer import SecretAnalyzer
 from internal.reporting.reporting import generate_report
 
@@ -35,7 +37,7 @@ class Orchestrator:
         # 1. Passive Intelligence
         passive_subs: List[str] = await get_crt_sh_subdomains(self.target)
         
-        # 2. Subdomain Enumeration
+        # 2. Subdomain Enumeration (Recursive implementation)
         enumerator = Enumerator(self.target, self.depth)
         enum_subs: List[str] = await enumerator.enumerate()
         
@@ -54,7 +56,7 @@ class Orchestrator:
         if cloud_assets:
             log_success(f"Found {len(cloud_assets)} potential cloud assets")
 
-        # 6. Live Host Detection & Secret Scanning
+        # 6. Live Host Detection & Intelligence Gathering
         urls = []
         for domain in resolved_map.keys():
             urls.append(f"http://{domain}")
@@ -67,6 +69,8 @@ class Orchestrator:
         all_js_endpoints = set()
         js_analyzer = JSAnalyzer()
         brute_results = []
+        graphql_endpoints = []
+        crawled_endpoints = []
         tech_map = {}
 
         for res in live_probe_results:
@@ -74,21 +78,36 @@ class Orchestrator:
              secrets = secret_analyzer.scan_content(res['body'])
              found_secrets.extend(secrets)
              
+             # GraphQL Detection
+             gql = await detect_graphql(res['url'])
+             graphql_endpoints.extend(gql)
+             
              # Tech Detection
              techs = await detect_technologies(res['url'], self.log_dir)
              if techs:
                  tech_map[res['url']] = techs
              
-             # JS Analysis & Path Brute Forcing (on main target or specific conditions)
+             # Deep analysis for main target or high priority hosts
              if self.target in res['url']:
+                 # Crawling
+                 links = await crawl_target(res['url'], self.log_dir)
+                 crawled_endpoints.extend(links)
+                 
+                 # JS Analysis
                  endpoints = await js_analyzer.analyze(res['url'])
                  all_js_endpoints.update(endpoints)
                  
-                 # Use discovery wordlists for brute forcing
-                 for wl in ["top-10k-web-directories.txt", "api.txt", "admin.txt"]:
-                     wordlist_path = os.path.join("wordlists/discovery", wl)
-                     if os.path.exists(wordlist_path):
-                          brute = await brute_force_paths(res['url'], wordlist_path)
+                 # Wordlist-driven discovery (Discovery, Backup, Dev)
+                 wordlists_to_check = [
+                     "wordlists/discovery/top-10k-web-directories.txt",
+                     "wordlists/discovery/api.txt",
+                     "wordlists/discovery/admin.txt",
+                     "wordlists/discovery/config.txt",
+                     "wordlists/discovery/env.txt"
+                 ]
+                 for wl in wordlists_to_check:
+                     if os.path.exists(wl):
+                          brute = await brute_force_paths(res['url'], wl)
                           brute_results.extend(brute)
         
         # 7. Vulnerability Scanning
@@ -99,10 +118,8 @@ class Orchestrator:
         subdomains_data = []
         for domain in all_subs_list:
             ips = resolved_map.get(domain, ["N/A"])
-            # Match probe by base domain
             probe = next((p for p in live_probe_results if domain in p['url']), None)
             
-            # Match tech by URL
             techs = []
             if probe:
                  techs = tech_map.get(probe['url'], [])
@@ -142,27 +159,26 @@ class Orchestrator:
             "secrets": found_secrets,
             "cloud_assets": cloud_assets,
             "takeovers": takeover_results,
-            "discovered_paths": brute_results
+            "discovered_paths": brute_results,
+            "graphql_endpoints": graphql_endpoints,
+            "crawled_links": crawled_endpoints
         }
 
         generate_report(self.target, report_data, self.log_dir)
         
         end_time = datetime.now()
         duration = end_time - self.start_time
-        log_success(f"ReconSP Pipeline for {self.target} finished in {duration}")
+        log_success(f"ReconSP Pipeline finished in {duration}")
 
     def _calculate_risk(self, vulns, cloud, takeover):
         score = 100
-        # Critical deductions
         if takeover and "VULNERABLE" in takeover: score -= 40
         if cloud: score -= len(cloud) * 10
-        
         for v in vulns:
             sev = v['severity'].lower()
             if sev == 'critical': score -= 30
             elif sev == 'high': score -= 15
             elif sev == 'medium': score -= 5
-            
         score = max(0, score)
         if score > 85: return "Grade: A"
         if score > 70: return "Grade: B"

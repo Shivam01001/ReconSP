@@ -190,6 +190,45 @@
             </div>
         </div>
 
+        <!-- GraphQL & Crawled Links -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass p-6 rounded-2xl">
+                <h4 class="text-lg font-semibold mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H4a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z">
+                        </path>
+                    </svg>
+                    GraphQL Endpoints
+                </h4>
+                <div class="max-h-60 overflow-y-auto space-y-2 text-sm">
+                    {% for gql in graphql_endpoints %}
+                    <div class="p-2 bg-pink-500/10 text-pink-300 rounded border border-pink-500/20 truncate font-mono">
+                        {{ gql }}</div>
+                    {% else %}
+                    <p class="italic text-gray-500">No GraphQL endpoints found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <h4 class="text-lg font-semibold mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.823a4 4 0 015.656 0l4 4a4 4 0 01-5.656 5.656l-1.102-1.101m-.758-4.823a4 4 0 015.656 0">
+                        </path>
+                    </svg>
+                    Crawled Links
+                </h4>
+                <div class="max-h-60 overflow-y-auto space-y-2 text-sm text-gray-400">
+                    {% for link in crawled_links %}
+                    <div class="p-1 bg-gray-800/30 rounded border border-gray-700/50 truncate">{{ link }}</div>
+                    {% else %}
+                    <p class="italic">No links discovered via crawler.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <!-- Subdomain Inventory -->
         <div class="glass rounded-2xl overflow-hidden">
             <div class="p-6 border-b border-gray-800 bg-gray-900/50">
